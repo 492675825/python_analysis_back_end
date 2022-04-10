@@ -1,8 +1,13 @@
+import os.path
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.generic.base import View
 from myapps.core.gold.script.data_transform import data_transform
 from myapps.core.gold.script.gold_spider import gold_data
+from myapps.core.nonfarm.script.nonfarm_data_delta import get_page
+from myapps import models
+import pandas as pd
 
 import time
 
@@ -14,17 +19,22 @@ try:
     scheduler = BackgroundScheduler()
 
 
-    @register_job(scheduler, "interval", seconds=3600, id="daily_gold_cycle")
+    @register_job(scheduler, "interval", seconds=60, id="daily_gold_cycle")
     def daily_gold_data_cycle():
         print("Cycle Job start..")
         print(f"Start Date: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(">>> get gold data start..")
         start_time = time.time()
         gold = gold_data()
         gold.get_data_by_page_number(page_number=1)
         end_time = time.time()
         print(">>> get gold data cost:", round((end_time - start_time), 2))
+        print(">>> gold data ETL start..")
         gold_etl = data_transform()
         gold_etl.main()
+        print(">>> get non farm data start..")
+        non_farm_delta = get_page()
+        non_farm_delta.get_data(showScreen=False)
         print("[Cycle job complete..]")
 
 
@@ -37,4 +47,59 @@ class gold_daily_data(View):
     def get(self, request):
         data = data_transform()
         data.main()
+        return JsonResponse({"code": 0, "msg": "success"})
+
+
+class non_farm_data(View):
+    def get(self, request):
+        df = pd.read_csv(r"C:\Users\xiongyuan\PycharmProjects\python_analysis_back_end\download\nonfarm\nonfarm.csv")
+        # version_date,current_value,predict_value,previous_value,refresh_date
+        bd_list = []
+        for ver, cur_val, prd_val, pre_val, ref_dte in zip(
+                df['version_date'].values,
+                df['current_value'].values,
+                df['predict_value'].values,
+                df['previous_value'].values,
+                df['refresh_date'].values):
+            bd_list.append(models.non_farm(
+                version_date=ver,
+                current_value=cur_val,
+                predict_value=prd_val,
+                previous_value=pre_val,
+                refresh_date=ref_dte
+            ))
+        models.non_farm.objects.bulk_create(bd_list)
+        return JsonResponse({"code": 0, "msg": "success"})
+
+
+class nonfarm_data_delta(View):
+    def get(self, request):
+        csv_path = os.path.dirname(os.path.dirname(__file__)) + "/download/nonfarm/nonfarm_delta.csv"
+        df = pd.read_csv(csv_path)
+        db = models.non_farm.objects.all().values()
+        df_db = pd.DataFrame(db)
+        db_version_date_list = [ver.strftime("%Y-%m-%d") for ver in df_db['version_date'].values]
+
+        df_version_date_list = list(df['version_date'].values)
+
+        for ver in df_version_date_list:
+            if ver in db_version_date_list:
+                pass
+            else:
+                print("find new date")
+                data = df[df['version_date'] == ver]
+                insert_list = []
+                for ver_date, cur_val, prd_val, pre_val, ref_date in zip(
+                        data['version_date'].values, data['current_value'].values, data['predict_value'].values,
+                        data['previous_value'].values, data['refresh_date'].values
+                ):
+                    insert_list.append(models.non_farm(
+                        version_date=ver_date,
+                        current_value=cur_val,
+                        predict_value=prd_val,
+                        previous_value=pre_val,
+                        refresh_date=ref_date
+                    ))
+                models.non_farm.objects.bulk_create(insert_list)
+
         return JsonResponse({"code": 0, "msg": "success"})
