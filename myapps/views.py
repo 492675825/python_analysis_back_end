@@ -6,6 +6,7 @@ from django.views.generic.base import View
 from myapps.core.gold.script.data_transform import data_transform
 from myapps.core.gold.script.gold_spider import gold_data
 from myapps.core.nonfarm.script.nonfarm_data_delta import get_page
+from myapps.core.news.script.news_script import get_news_from_website
 from myapps import models
 import pandas as pd
 
@@ -19,7 +20,7 @@ try:
     scheduler = BackgroundScheduler()
 
 
-    @register_job(scheduler, "interval", seconds=60, id="daily_gold_cycle")
+    @register_job(scheduler, "interval", seconds=3600, id="daily_gold_cycle")
     def daily_gold_data_cycle():
         print("Cycle Job start..")
         print(f"Start Date: {time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -35,7 +36,12 @@ try:
         print(">>> get non farm data start..")
         non_farm_delta = get_page()
         non_farm_delta.get_data(showScreen=False)
+        print(">>> get news start..")
+        news_data = get_news_from_website()
+        news_data.main()
         print("[Cycle job complete..]")
+
+
 
 
     scheduler.start()
@@ -103,3 +109,10 @@ class nonfarm_data_delta(View):
                 models.non_farm.objects.bulk_create(insert_list)
 
         return JsonResponse({"code": 0, "msg": "success"})
+
+class cctv_world_news(View):
+    def get(self,request):
+        data = get_news_from_website()
+        data.main()
+        return JsonResponse({"code":0,"msg":"success"})
+

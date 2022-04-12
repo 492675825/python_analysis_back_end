@@ -39,7 +39,6 @@ class get_page:
         previous_value = driver.find_elements(By.XPATH, '//tbody//tr//td[5]//a')
         previous_value_list = [x.text for x in previous_value]
 
-
         date_value_list = []
         for dte in date_list:
             if len(dte) != 0:
@@ -48,15 +47,10 @@ class get_page:
                 pass
 
         num = len(date_value_list)
-        print('num:',num)
+
         predict_value_list = predict_value_list[:num]
         previous_value_list = previous_value_list[:num]
         current_value_list = current_value_list[:num]
-        print('date_value_list:', len(date_value_list))
-        print("predict_value_list:", len(predict_value_list))
-        print('previous_value_list:', len(previous_value_list))
-        print('current_value_list:', len(current_value_list))
-        print(current_value_list)
 
         df = pd.DataFrame(date_value_list)
         df['current_value'] = current_value_list
@@ -70,10 +64,9 @@ class get_page:
         df['refresh_date'] = list([time.strftime("%Y-%m-%d %H:%M:%S")]) * len(df)
         # print(df.head())
         print(">>> [Complete] get non-farm data complete..")
-        df.to_csv(r"C:\Users\xiongyuan\PycharmProjects\python_analysis_back_end\download\nonfarm\nonfarm_delta.csv", index=False)
+        df.to_csv(r"C:\Users\xiongyuan\PycharmProjects\python_analysis_back_end\download\nonfarm\nonfarm_delta.csv",
+                  index=False)
         return df
-
-
 
 
 if __name__ == '__main__':
