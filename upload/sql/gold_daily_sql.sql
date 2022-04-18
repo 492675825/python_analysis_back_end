@@ -1,7 +1,15 @@
---去空格，去百分号，去逗号
-DROP TABLE IF EXISTS tbl_gold_data;
-CREATE TABLE tbl_gold_data LIKE temp_gold_data;
-INSERT INTO tbl_gold_data
+-- 用shell命令导出excel：
+-- echo "select * from finance_analysis_20211219db.tbl_d_au_td_gold_data_analysis" | mysql -h127.0.0.1 -uroot -p123456 > C:/Users/xiongyuan/Desktop/gold_data.xlsx
+-- 非严格模式 
+-- SET @@global.sql_mode= '';
+
+-- select * from temp_gold_data;
+-- temp_gold_data
+-- 01 删除并创建 tbl_gold_data
+-- 去空格，去百分号，去逗号
+DROP TABLE IF EXISTS finance_analysis_20211219db.tbl_gold_data;
+CREATE TABLE finance_analysis_20211219db.tbl_gold_data LIKE finance_analysis_20211219db.temp_gold_data;
+INSERT INTO finance_analysis_20211219db.tbl_gold_data
 SELECT 
 id, 
 replace(item, ".","") as item, 
@@ -11,11 +19,11 @@ replace(replace(replace(low," ",""),",",""),"%","") as "low",
 replace(replace(replace(close," ",""),",",""),"%","") as "close", 
 replace(up_or_down,"%","") as up_or_down,
 version_date 
-from temp_gold_data;
+from finance_analysis_20211219db.temp_gold_data;
 
---02 清空并创建 tbl_au_td_gold_data
-truncate table tbl_au_td_gold_data;
-insert into tbl_au_td_gold_data
+-- 02 清空并创建 tbl_au_td_gold_data
+truncate table finance_analysis_20211219db.tbl_au_td_gold_data;
+insert into finance_analysis_20211219db.tbl_au_td_gold_data
 select 
 id as id,
 version_date as version_date,
@@ -28,9 +36,9 @@ cast(up_or_down as float) as up_or_down
 from tbl_gold_data
 where item = 'Au9999';
 
---03 清空并创建 tbl_au_td_gold_data_analysis
-truncate table tbl_au_td_gold_data_analysis;
-insert into tbl_au_td_gold_data_analysis
+-- 03 清空并创建 tbl_au_td_gold_data_analysis
+truncate table finance_analysis_20211219db.tbl_au_td_gold_data_analysis;
+insert into finance_analysis_20211219db.tbl_au_td_gold_data_analysis
 select 
 	id,
 	version_date,
@@ -66,56 +74,68 @@ select
     date_format(version_date,"%Y") as year_number,
     date_format(version_date,"%m") as month_number,
     date_format(version_date,"%d") as day_number
-from tbl_au_td_gold_data;
+from finance_analysis_20211219db.tbl_au_td_gold_data;
 
---04 清空并创建 tbl_d_au_td_gold_data_analysis
-truncate table tbl_d_au_td_gold_data_analysis;
-insert into tbl_d_au_td_gold_data_analysis
+-- 04 清空并创建 tbl_d_au_td_gold_data_analysis
+truncate table finance_analysis_20211219db.tbl_d_au_td_gold_data_analysis;
+insert into finance_analysis_20211219db.tbl_d_au_td_gold_data_analysis
 select id,date_number, sum(mapping)
-from tbl_au_td_gold_data_analysis
+from finance_analysis_20211219db.tbl_au_td_gold_data_analysis
 group by date_number
 order by date_number;
 
---05 清空并插入数据 tbl_y_au_td_gold_data_analysis
-truncate table tbl_y_au_td_gold_data_analysis;
-insert into tbl_y_au_td_gold_data_analysis
+-- 05 清空并插入数据 tbl_y_au_td_gold_data_analysis
+truncate table finance_analysis_20211219db.tbl_y_au_td_gold_data_analysis;
+insert into finance_analysis_20211219db.tbl_y_au_td_gold_data_analysis
 select id, year_number, sum(mapping)
-from tbl_au_td_gold_data_analysis
+from finance_analysis_20211219db.tbl_au_td_gold_data_analysis
 group by year_number
 order by year_number;
 
---06 清空并插入 tbl_y_au_td_average_analysis
-truncate table tbl_y_au_td_average_analysis;
-insert into tbl_y_au_td_average_analysis
+-- 06 清空并插入 tbl_y_au_td_average_analysis
+truncate table finance_analysis_20211219db.tbl_y_au_td_average_analysis;
+insert into finance_analysis_20211219db.tbl_y_au_td_average_analysis
 select id, year_number, avg(close)
-from tbl_au_td_gold_data_analysis
+from finance_analysis_20211219db.tbl_au_td_gold_data_analysis
 group by year_number
 order by year_number;
 
---07 清空并插入 select * from tbl_d_au_td_year_and_month_mapping;
-truncate table tbl_d_au_td_year_and_month_mapping;
-insert into tbl_d_au_td_year_and_month_mapping
+-- 07 清空并插入 select * from tbl_d_au_td_year_and_month_mapping;
+truncate table finance_analysis_20211219db.tbl_d_au_td_year_and_month_mapping;
+insert into finance_analysis_20211219db.tbl_d_au_td_year_and_month_mapping
 select id,year_number,month_number, sum(mapping) as mapping_sum
-from tbl_au_td_gold_data_analysis
+from finance_analysis_20211219db.tbl_au_td_gold_data_analysis
 group by year_number,month_number
 order by year_number, month_number;
 
---08 清空并插入 select * from tbl_m_au_td_gold_data_mapping order by month_number;
-truncate table tbl_m_au_td_gold_data_mapping;
-insert into tbl_m_au_td_gold_data_mapping
+-- 08 清空并插入 select * from tbl_m_au_td_gold_data_mapping order by month_number;
+truncate table finance_analysis_20211219db.tbl_m_au_td_gold_data_mapping;
+insert into finance_analysis_20211219db.tbl_m_au_td_gold_data_mapping
 with temp_table_01 as (
 select id,month_number, sum(mapping_sum) as sum, avg(mapping_sum) as average
-from tbl_d_au_td_year_and_month_mapping
+from finance_analysis_20211219db.tbl_d_au_td_year_and_month_mapping
 group by month_number
 ),temp_table_02 as (
-select id,month_number, mapping_sum as current_sum_mapping from tbl_d_au_td_year_and_month_mapping
-where year_number = (select max(year_number) from tbl_d_au_td_year_and_month_mapping)
+select id,month_number, mapping_sum as current_sum_mapping from finance_analysis_20211219db.tbl_d_au_td_year_and_month_mapping
+where year_number = (select max(year_number) from finance_analysis_20211219db.tbl_d_au_td_year_and_month_mapping)
 )
 select a.id, a.month_number, b.current_sum_mapping, a.average, a.sum
 from temp_table_01 a
 left join temp_table_02 b
 on a.month_number = b.month_number;
 
+
+-- 09 清空并插入数据到 tbl_d_news_cctv_union_all
+truncate table finance_analysis_20211219db.tbl_d_news_cctv_union_all;
+insert into finance_analysis_20211219db.tbl_d_news_cctv_union_all
+with temp_table_02 as (
+	select version_date, title, brief, keyword, url, refresh_date,news_type from finance_analysis_20211219db.tbl_d_news_cctv_world
+	union all 
+	select version_date, title, brief, keyword, url, refresh_date,news_type from finance_analysis_20211219db.tbl_d_news_cctv_china
+	union all 
+	select version_date, title, brief, keyword, url, refresh_date,news_type from finance_analysis_20211219db.tbl_d_news_cctv_economy
+)
+select version_date, title, brief, keyword, url, refresh_date,news_type from temp_table_02;
 
 
 

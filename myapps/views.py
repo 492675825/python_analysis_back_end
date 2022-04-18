@@ -39,9 +39,9 @@ try:
         print(">>> get news start..")
         news_data = get_news_from_website()
         news_data.main()
-        print("[Cycle job complete..]")
-
-
+        print(">>> start running sql..")
+        os.system("C:/Users/xiongyuan/Desktop/Sql/run_sql.bat")
+        print(f"[Cycle job complete..][{time.strftime('%Y-%m-%d %H:%M:%S')}]")
 
 
     scheduler.start()
@@ -110,9 +110,9 @@ class nonfarm_data_delta(View):
 
         return JsonResponse({"code": 0, "msg": "success"})
 
+
 class cctv_world_news(View):
-    def get(self,request):
+    def get(self, request):
         data = get_news_from_website()
         data.main()
-        return JsonResponse({"code":0,"msg":"success"})
-
+        return JsonResponse({"code": 0, "msg": "success"})
