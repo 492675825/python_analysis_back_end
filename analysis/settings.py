@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'myapps',
     'corsheaders',
     'django_apscheduler',
+    
 ]
 
 MIDDLEWARE = [

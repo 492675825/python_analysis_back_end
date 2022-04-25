@@ -99,52 +99,13 @@ class download_file:
         session = requests.session()
         login = session.post(url=self.url, data=self.form_data, headers=self.header)
         cookie = login.cookies
-        # download_file_res = session.post(url=self.download_url,
-        #                                  data=self.form_data_download,
-        #                                  headers=self.header,
-        #                                  cookies=cookie)
-        if login.status_code == 200:
-            print("return_code:200")
-            md5_file_res = session.post(url=self.download_url_md5,
-                                        data=self.form_data_md5,
-                                        headers=self.header,
-                                        cookies=cookie)
-        else:
-            print("cookie has expired..")
-            login = session.post(url=self.url, data=self.form_data, headers=self.header)
-            cookie = login.cookies
-            md5_file_res = session.post(url=self.download_url_md5,
-                                        data=self.form_data_md5,
-                                        headers=self.header,
-                                        cookies=cookie)
-        with open("full-sms-20220323.md5", 'wb') as md5_f:
-            md5_f.write(md5_file_res.content)
-        if login.status_code == 200:
-            print("return_code:200")
-            zip_file_res = session.post(url=self.download_url_zip,
-                                        data=self.form_data_zip,
-                                        headers=self.download_header_tier02,
-                                        stream=True,
-                                        cookies=cookie)
-        else:
-            print("cookie has expired..")
-            login = session.post(url=self.url, data=self.form_data, headers=self.header)
-            cookie = login.cookies
-            zip_file_res = session.post(url=self.download_url_zip,
-                                        data=self.form_data_zip,
-                                        headers=self.download_header_tier02,
-                                        stream=True,
-                                        cookies=cookie)
-        # print(zip_file_res.text)
-        with open('full-sms-20220323.zip', 'wb') as zip_f:
-            for chunk in zip_file_res.iter_content(chunk_size=512):
-                zip_f.write(chunk)
+        res = login.text
+        print(res)
         logout = session.post(url=self.logout_url,
                               data=self.form_data_logout,
                               headers=self.header,
                               cookies=cookie
                               )
-        print(logout)
         session.close()
 
     def main(self):
