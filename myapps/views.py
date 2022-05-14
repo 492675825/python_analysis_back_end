@@ -9,7 +9,6 @@ from myapps.core.nonfarm.script.nonfarm_data_delta import get_page
 from myapps.core.news.script.news_script import get_news_from_website
 from myapps import models
 import pandas as pd
-
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler

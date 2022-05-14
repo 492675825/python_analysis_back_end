@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait  # 等待页面加载
 from selenium.webdriver.common.by import By
@@ -7,13 +9,16 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import traceback
 import pandas as pd
+from myapps import models
 
 
 class get_page:
     def __init__(self):
-        pass
+        self.root_path = str(Path(__file__).resolve().parent.parent.parent.parent.parent)
+        self.save_path = self.root_path + "/download/nonfarm/nonfarm_delta.csv"
 
     def get_data(self, showScreen=False):
+
         print(">>> [Start] get non-farm data start..")
         # 不弹出浏览器
         if not showScreen:
@@ -64,8 +69,28 @@ class get_page:
         df['refresh_date'] = list([time.strftime("%Y-%m-%d %H:%M:%S")]) * len(df)
         # print(df.head())
         print(">>> [Complete] get non-farm data complete..")
-        df.to_csv(r"C:\Users\xiongyuan\PycharmProjects\python_analysis_back_end\download\nonfarm\nonfarm_delta.csv",
-                  index=False)
+        df.to_csv(self.save_path, index=False)
+
+        dataset = models.non_farm.objects.all().values()
+        df_model = pd.DataFrame(dataset)
+        version_date_list = list(df_model['version_date'].values)
+        for ver_date, curr_val, pred_val, prev_val, ref_date in zip(
+            df['version_date'].values,
+                df['current_value'].values,
+                df['predict_value'].values,
+                df['previous_value'].values,
+                df['refresh_date'].values
+        ):
+            if ver_date in version_date_list:
+                pass
+            else:
+                models.non_farm.objects.all().create(
+                    version_date=ver_date,
+                    current_value=curr_val,
+                    predict_value=pred_val,
+                    previous_value=prev_val,
+                    refresh_date=ref_date
+                )
         return df
 
 
