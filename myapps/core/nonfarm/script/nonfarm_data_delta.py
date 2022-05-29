@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import time
 import traceback
+import datetime
 import pandas as pd
 from myapps import models
 
@@ -74,6 +75,7 @@ class get_page:
         dataset = models.non_farm.objects.all().values()
         df_model = pd.DataFrame(dataset)
         version_date_list = list(df_model['version_date'].values)
+        ver_date_list = [datetime.datetime.strftime(ver, "%Y-%m-%d") for ver in version_date_list]
         for ver_date, curr_val, pred_val, prev_val, ref_date in zip(
             df['version_date'].values,
                 df['current_value'].values,
@@ -81,9 +83,10 @@ class get_page:
                 df['previous_value'].values,
                 df['refresh_date'].values
         ):
-            if ver_date in version_date_list:
-                pass
+            if str(ver_date) in ver_date_list:
+                print("version_date existed..")
             else:
+
                 models.non_farm.objects.all().create(
                     version_date=ver_date,
                     current_value=curr_val,

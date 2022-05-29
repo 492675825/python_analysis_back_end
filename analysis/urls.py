@@ -7,6 +7,7 @@ urlpatterns = [
     path("gold/daily/data_etl/", views.gold_daily_data.as_view(), name="etl"),
     path("nonfarm/data/full/", views.non_farm_data.as_view(), name="nonfarm_full"),
     path("nonfarm/data/delta/", views.nonfarm_data_delta.as_view(), name="nonfarm_delta"),
-    path("news/cctv/news/", views.cctv_world_news.as_view(), name="cctv_news")
+    path("news/cctv/news/", views.cctv_world_news.as_view(), name="cctv_news"),
+    path("lottery_seven_star/seven/", views.lottery_seven_star.as_view(), name="lottery_seven_star")
 ]
 

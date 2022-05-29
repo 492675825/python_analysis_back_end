@@ -7,6 +7,7 @@ from myapps.core.gold.script.data_transform import data_transform
 from myapps.core.gold.script.gold_spider import gold_data
 from myapps.core.nonfarm.script.nonfarm_data_delta import get_page
 from myapps.core.news.script.news_script import get_news_from_website
+from myapps.core.lottery.script import seven_star
 from myapps import models
 import pandas as pd
 import time
@@ -30,7 +31,7 @@ try:
         end_time = time.time()
         print(">>> get gold data cost:", round((end_time - start_time), 2))
         print(">>> gold data ETL start..")
-        gold_etl = data_transform()
+        gold_etl = data_transform()         
         gold_etl.main()
         print(">>> get non farm data start..")
         non_farm_delta = get_page()
@@ -40,7 +41,12 @@ try:
         news_data.main()
         print(">>> start running sql..")
         os.system("C:/Users/xiongyuan/Desktop/Sql/run_sql.bat")
+        for i in range(1, 11):
+            data = seven_star.lottery_seven_star(page_number=i)
+            data.get_result()
+            print(f"update page:{i}")
         print(f"[Cycle job complete..][{time.strftime('%Y-%m-%d %H:%M:%S')}]")
+
 
 
     scheduler.start()
@@ -114,4 +120,23 @@ class cctv_world_news(View):
     def get(self, request):
         data = get_news_from_website()
         data.main()
+        return JsonResponse({"code": 0, "msg": "success"})
+
+
+# http://127.0.0.1:8000/lottery_seven_star/seven/
+class lottery_seven_star(View):
+    def get(self, request):
+        '''
+        七星彩
+        :param request:
+        :return:
+        '''
+        csv_path = r"C:\Users\xiongyuan\Desktop\PycharmProjects\python_analysis_back_end\download\lottery\seven_star\seven_star.csv"
+        for i in range(1, 11):
+            data = seven_star.lottery_seven_star(page_number=i)
+            data.get_result()
+            print(f"update page:{i}")
+        db = models.lottery_seven_star.objects.all().values()
+        df = pd.DataFrame(db)
+        df.to_csv(csv_path, index=False)
         return JsonResponse({"code": 0, "msg": "success"})

@@ -61,6 +61,7 @@ class cctv_world_news(models.Model):
     def __str__(self):
         self.title
 
+
 class cctv_china_news(models.Model):
     # version_date,title,brief,keyword,url
     id = models.BigAutoField(null=False, blank=False, primary_key=True, verbose_name="编号", )
@@ -79,6 +80,7 @@ class cctv_china_news(models.Model):
 
     def __str__(self):
         self.title
+
 
 class cctv_economy_news(models.Model):
     # version_date,title,brief,keyword,url
@@ -100,3 +102,20 @@ class cctv_economy_news(models.Model):
         self.title
 
 
+class lottery_seven_star(models.Model):
+    version_date = models.CharField(primary_key=True, max_length=50, null=False, blank=False, verbose_name="开奖之间")
+    number_01 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码1")
+    number_02 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码2")
+    number_03 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码3")
+    number_04 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码4")
+    number_05 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码5")
+    number_06 = models.CharField(max_length=1, null=True, blank=True, verbose_name="号码6")
+    final_number = models.CharField(max_length=1, null=True, blank=True, verbose_name="特别号码")
+
+    class Meta:
+        db_table = 'tbl_d_lottery_seven'
+        verbose_name = '彩票-七星彩'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        self.version_date
